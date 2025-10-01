@@ -109,8 +109,25 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
     setError('');
 
     try {
-      // Auto-register user with email only (no password needed)
-      const autoPassword = 'email-' + email.replace(/[^a-zA-Z0-9]/g, '') + '-' + Date.now();
+      // Check if user exists
+      const checkResponse = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const userData = await checkResponse.json();
+
+      if (userData.exists) {
+        // User already exists - show message
+        alert('This email is already registered! Please use "Log on" button to sign in with your password.');
+        setView('main');
+        setLoading(false);
+        return;
+      }
+
+      // User doesn't exist - create new account
+      const autoPassword = 'auto-' + email.replace(/[^a-zA-Z0-9]/g, '') + Date.now();
 
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -124,8 +141,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
       const data = await response.json();
 
-      if (response.ok || data.error === 'User already exists') {
-        // Try to login
+      if (response.ok) {
+        // Auto login with the new account
         const result = await signIn('credentials', {
           email,
           password: autoPassword,
@@ -133,16 +150,14 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         });
 
         if (result?.ok) {
-          alert('Welcome! You are now logged in.');
+          alert('Account created! Welcome!');
           onClose();
           window.location.reload();
         } else {
-          // If login fails, user might already exist with different password
-          // Ask them to use password login
-          setError('This email is already registered. Please use "Log on" with your password.');
+          setError('Account created but login failed. Please try to log on.');
         }
       } else {
-        setError(data.error || 'Failed to continue');
+        setError(data.error || 'Failed to create account');
       }
     } catch (error) {
       setError('Something went wrong. Please try again.');
