@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Product {
   id: number;
@@ -142,7 +143,7 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-            <a href={`/product/${product.id}`} className="block cursor-pointer">
+            <Link href={`/product/${product.id}`} className="block cursor-pointer">
               <img
                 src={product.image_url}
                 alt={product.name}
@@ -157,7 +158,7 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-            </a>
+            </Link>
             <div className="px-4 pb-4">
               <button
                 onClick={() => addToCart(product)}
