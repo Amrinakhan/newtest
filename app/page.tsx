@@ -117,7 +117,15 @@ export default function HomePage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Products</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Products</h1>
+          <a
+            href="/add-product"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            + Add Product
+          </a>
+        </div>
         <div className="bg-blue-600 text-white px-4 py-2 rounded-lg">
           <span>Cart: {getTotalItems()} items (${getTotalPrice().toFixed(2)})</span>
           {getTotalItems() > 0 && (
