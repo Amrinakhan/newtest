@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Order {
   id: number;
@@ -12,6 +13,7 @@ interface Order {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'purchased'>('all');
@@ -84,7 +86,34 @@ export default function AdminPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Admin Panel - Order Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Admin Panel - Order Management</h1>
+
+        {/* Product Management Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => router.push('/add-product')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <span>➕</span>
+            Add Product
+          </button>
+          <button
+            onClick={() => router.push('/edit-product')}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <span>✏️</span>
+            Edit Product
+          </button>
+          <button
+            onClick={() => router.push('/delete-product')}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <span>🗑️</span>
+            Delete Product
+          </button>
+        </div>
+      </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
