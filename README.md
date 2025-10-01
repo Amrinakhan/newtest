@@ -119,4 +119,4 @@ Visit `http://localhost:3000` to see the application.
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Node.js
 - **Database**: PostgreSQL with pg driver
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS"# newtest" 
