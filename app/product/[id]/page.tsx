@@ -69,11 +69,7 @@ export default function ProductDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-xl">Loading product...</p>
-      </div>
-    );
+    return null;
   }
 
   if (!product) {
