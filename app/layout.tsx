@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Providers from './providers'
 
 export const metadata: Metadata = {
   title: 'Ecommerce Website',
@@ -14,18 +15,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50">
-        <nav className="bg-blue-600 text-white p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-xl font-bold">Ecommerce Store</h1>
-            <div className="space-x-4">
-              <a href="/" className="hover:text-blue-200">Products</a>
-              <a href="/admin" className="hover:text-blue-200">Admin</a>
+        <Providers>
+          <nav className="bg-blue-600 text-white p-4">
+            <div className="container mx-auto flex justify-between items-center">
+              <h1 className="text-xl font-bold">Ecommerce Store</h1>
+              <div className="space-x-4">
+                <a href="/" className="hover:text-blue-200">Products</a>
+                <a href="/admin" className="hover:text-blue-200">Admin</a>
+              </div>
             </div>
-          </div>
-        </nav>
-        <main className="container mx-auto p-4">
-          {children}
-        </main>
+          </nav>
+          <main className="container mx-auto p-4">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   )

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface Product {
   id: number;
@@ -14,6 +15,7 @@ interface Product {
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session } = useSession();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -43,8 +45,14 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product) return;
 
-    const customerName = prompt('Please enter your name:');
-    if (!customerName) return;
+    // Check if user is logged in
+    if (!session) {
+      alert('Please login to purchase products!');
+      router.push('/');
+      return;
+    }
+
+    const customerName = session.user?.name || session.user?.email || 'Guest';
 
     try {
       for (let i = 0; i < quantity; i++) {
@@ -60,7 +68,7 @@ export default function ProductDetailPage() {
           }),
         });
       }
-      alert(`${quantity} x ${product.name} added to your orders!`);
+      alert(`${quantity} x ${product.name} added to your orders! Thank you for your purchase.`);
       router.push('/');
     } catch (error) {
       console.error('Error placing order:', error);
