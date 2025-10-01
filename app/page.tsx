@@ -141,31 +141,35 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-              <p className="text-gray-600 mb-3">{product.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-green-600">
-                  ${product.price}
-                </span>
-                <button
-                  onClick={() => addToCart(product)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
-                >
-                  Add to Cart
-                  {cart[product.id] && (
-                    <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
-                      {cart[product.id]}
-                    </span>
-                  )}
-                </button>
+          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+            <a href={`/product/${product.id}`} className="block cursor-pointer">
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-2 hover:text-blue-600 transition-colors">{product.name}</h3>
+                <p className="text-gray-600 mb-3 line-clamp-2">{product.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-green-600">
+                    ${product.price}
+                  </span>
+                </div>
               </div>
+            </a>
+            <div className="px-4 pb-4">
+              <button
+                onClick={() => addToCart(product)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
+              >
+                Add to Cart
+                {cart[product.id] && (
+                  <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                    {cart[product.id]}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         ))}
