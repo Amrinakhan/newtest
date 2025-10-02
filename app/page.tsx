@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import AuthModal from '@/components/AuthModal';
+import CustomerNameModal from '@/components/EmailCollectionModal';
 
 interface Product {
   id: number;
@@ -20,6 +21,8 @@ export default function HomePage() {
   const [cart, setCart] = useState<{ [key: number]: number }>({});
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authView, setAuthView] = useState<'main' | 'join' | 'signin'>('main');
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -66,7 +69,6 @@ export default function HomePage() {
   };
 
   const proceedToCheckout = () => {
-    // No login required - direct checkout as guest
     const cartItems = Object.entries(cart).map(([productId, quantity]) => {
       const product = products.find(p => p.id === parseInt(productId));
       return { product, quantity };
@@ -77,7 +79,18 @@ export default function HomePage() {
       return;
     }
 
-    const customerName = session?.user?.name || session?.user?.email || 'Guest';
+    // Show name modal to get customer name
+    setShowNameModal(true);
+  };
+
+  const handleNameSubmit = async (name: string) => {
+    setCustomerName(name);
+
+    // Now place the orders with the customer name
+    const cartItems = Object.entries(cart).map(([productId, quantity]) => {
+      const product = products.find(p => p.id === parseInt(productId));
+      return { product, quantity };
+    }).filter(item => item.product && item.quantity > 0);
 
     // Place orders for each item in cart
     cartItems.forEach(async ({ product, quantity }) => {
@@ -92,7 +105,7 @@ export default function HomePage() {
               body: JSON.stringify({
                 product_name: product.name,
                 price: product.price,
-                customer_name: customerName,
+                customer_name: name,
               }),
             });
           } catch (error) {
@@ -127,6 +140,14 @@ export default function HomePage() {
         isOpen={showAuthModal}
         onClose={() => { setShowAuthModal(false); setAuthView('main'); }}
         initialView={authView}
+      />
+
+      <CustomerNameModal
+        isOpen={showNameModal}
+        onClose={() => setShowNameModal(false)}
+        onSubmit={handleNameSubmit}
+        title="Complete Your Purchase"
+        message="Please enter your name to complete the order"
       />
 
       {/* Clean Professional Header - DealGuru Style */}
