@@ -47,13 +47,21 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
     setError('');
 
     try {
-      // First try to sign in
-      let result = await signIn('credentials', {
+      // Simple sign in - no auto-registration
+      const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
 
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        onClose();
+        window.location.reload();
+      }
+
+      /* COMMENTED OUT - Auto-registration logic (for future use)
       // If sign in fails, try to create account automatically
       if (result?.error) {
         console.log('Sign in failed, trying to register...', result.error);
@@ -104,6 +112,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         onClose();
         window.location.reload();
       }
+      */
     } catch (error) {
       setError('Failed to sign in');
     } finally {
