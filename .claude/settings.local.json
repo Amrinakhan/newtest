@@ -21,7 +21,8 @@
       "Bash(cmd /c:*)",
       "Bash(timeout:*)",
       "Bash(dir:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx vercel logs:*)"
     ],
     "deny": [],
     "ask": []

@@ -171,22 +171,34 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
           onClose();
           window.location.reload();
         } else {
-          // Log error for debugging
-          console.error('Login failed after registration:', result?.error);
+          // Log full error details for debugging
+          console.error('Login failed after registration. Full result:', result);
+          console.error('Error:', result?.error);
+          console.error('Status:', result?.status);
+          console.error('URL:', result?.url);
 
-          // Try one more time with longer delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          const retryResult = await signIn('credentials', {
-            email,
-            password: autoPassword,
-            redirect: false,
-          });
+          // Try multiple times with increasing delays
+          let success = false;
+          for (let i = 0; i < 3; i++) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+            console.log(`Retry attempt ${i + 1}...`);
 
-          if (retryResult?.ok) {
-            onClose();
-            window.location.reload();
-          } else {
-            setError('Account created but login failed: ' + (retryResult?.error || 'Unknown error'));
+            const retryResult = await signIn('credentials', {
+              email,
+              password: autoPassword,
+              redirect: false,
+            });
+
+            if (retryResult?.ok) {
+              success = true;
+              onClose();
+              window.location.reload();
+              break;
+            }
+          }
+
+          if (!success) {
+            setError('Account created! Please refresh the page and try logging in again.');
           }
         }
       } else {
