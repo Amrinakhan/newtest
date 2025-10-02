@@ -67,12 +67,16 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
           if (registerResponse.ok) {
             // Auto login after registration with redirect
-            await signIn('credentials', {
+            const loginResult = await signIn('credentials', {
               email,
               password,
               callbackUrl: '/',
-              redirect: true,
+              redirect: false,
             });
+
+            if (loginResult?.ok) {
+              window.location.href = '/';
+            }
             return;
           }
         } catch (regError) {
@@ -81,7 +85,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
         setError('Login failed. Please check your credentials.');
       } else {
-        // Successful login - redirect to home
+        // Successful login - close modal and reload page
+        onClose();
         window.location.href = '/';
       }
     } catch (error) {
@@ -110,15 +115,23 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         return;
       }
 
-      // Auto login after registration with redirect
-      await signIn('credentials', {
+      // Auto login after registration
+      const result = await signIn('credentials', {
         email,
         password,
         callbackUrl: '/',
-        redirect: true,
+        redirect: false,
       });
+
+      if (result?.ok) {
+        onClose();
+        window.location.href = '/';
+      } else {
+        setError('Registration successful but login failed. Please try signing in.');
+      }
     } catch (error) {
       setError('Failed to register');
+    } finally {
       setLoading(false);
     }
   };
