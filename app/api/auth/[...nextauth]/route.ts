@@ -57,23 +57,35 @@ const authOptions: NextAuthOptions = {
             throw new Error('Invalid login method');
           }
 
-          // Check if it's an auto-generated password or regular password
+          // Check if it's an auto-generated password (passwordless login)
           const isAutoPassword = credentials.password.startsWith('auto-generated-');
-          let isValid = false;
 
           if (isAutoPassword) {
-            // For auto-generated passwords, verify the pattern matches the email
+            // For passwordless login, just verify it's the correct auto-password format
             const expectedAutoPassword = 'auto-generated-' + credentials.email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
-            isValid = credentials.password === expectedAutoPassword && await bcrypt.compare(expectedAutoPassword, user.password);
+
+            if (credentials.password === expectedAutoPassword) {
+              // Valid passwordless login - allow access
+              console.log('Passwordless login successful for:', credentials.email);
+
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                name: user.name,
+                image: user.image,
+              };
+            } else {
+              throw new Error('Invalid passwordless token');
+            }
           } else {
             // Regular password check
-            isValid = await bcrypt.compare(credentials.password, user.password);
-          }
+            const isValid = await bcrypt.compare(credentials.password, user.password);
 
-          console.log('Password valid:', isValid);
+            console.log('Password valid:', isValid);
 
-          if (!isValid) {
-            throw new Error('Invalid password');
+            if (!isValid) {
+              throw new Error('Invalid password');
+            }
           }
 
           return {
