@@ -57,7 +57,18 @@ const authOptions: NextAuthOptions = {
             throw new Error('Invalid login method');
           }
 
-          const isValid = await bcrypt.compare(credentials.password, user.password);
+          // Check if it's an auto-generated password or regular password
+          const isAutoPassword = credentials.password.startsWith('auto-generated-');
+          let isValid = false;
+
+          if (isAutoPassword) {
+            // For auto-generated passwords, verify the pattern matches the email
+            const expectedAutoPassword = 'auto-generated-' + credentials.email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
+            isValid = credentials.password === expectedAutoPassword && await bcrypt.compare(expectedAutoPassword, user.password);
+          } else {
+            // Regular password check
+            isValid = await bcrypt.compare(credentials.password, user.password);
+          }
 
           console.log('Password valid:', isValid);
 
