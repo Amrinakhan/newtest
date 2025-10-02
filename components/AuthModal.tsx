@@ -157,6 +157,9 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       const data = await response.json();
 
       if (response.ok) {
+        // Wait a moment for database to sync (especially important on Vercel)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // Auto login with the new account
         const result = await signIn('credentials', {
           email,
@@ -170,7 +173,21 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         } else {
           // Log error for debugging
           console.error('Login failed after registration:', result?.error);
-          setError('Account created but login failed: ' + (result?.error || 'Unknown error'));
+
+          // Try one more time with longer delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const retryResult = await signIn('credentials', {
+            email,
+            password: autoPassword,
+            redirect: false,
+          });
+
+          if (retryResult?.ok) {
+            onClose();
+            window.location.reload();
+          } else {
+            setError('Account created but login failed: ' + (retryResult?.error || 'Unknown error'));
+          }
         }
       } else {
         setError(data.error || 'Failed to create account');
