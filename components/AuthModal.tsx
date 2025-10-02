@@ -139,6 +139,12 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         return;
       }
 
+      // Account created successfully - show success message and switch to signin
+      alert('✅ Account created successfully! Please sign in with your credentials.');
+      setView('signin');
+      setError('');
+
+      /* COMMENTED OUT - Auto-login after registration (for future use)
       // Auto login after registration
       const result = await signIn('credentials', {
         email,
@@ -154,6 +160,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       } else {
         setError('Registration successful but login failed. Please try signing in.');
       }
+      */
     } catch (error) {
       setError('Failed to register');
     } finally {
