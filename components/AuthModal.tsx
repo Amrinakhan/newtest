@@ -126,7 +126,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       }
 
       // User doesn't exist - create new account
-      const autoPassword = 'auto-' + email.replace(/[^a-zA-Z0-9]/g, '') + Date.now();
+      // Use email-based password (consistent for each email)
+      const autoPassword = 'auto-generated-' + email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
 
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -149,11 +150,12 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         });
 
         if (result?.ok) {
-          alert('Account created! Welcome!');
           onClose();
           window.location.reload();
         } else {
-          setError('Account created but login failed. Please try to log on.');
+          // Log error for debugging
+          console.error('Login failed after registration:', result?.error);
+          setError('Account created but login failed: ' + (result?.error || 'Unknown error'));
         }
       } else {
         setError(data.error || 'Failed to create account');
