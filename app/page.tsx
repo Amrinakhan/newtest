@@ -57,14 +57,7 @@ export default function HomePage() {
   };
 
   const addToCart = (product: Product) => {
-    // Check if user is logged in
-    if (!session) {
-      alert('Please login to add items to cart!');
-      setAuthView('join');
-      setShowAuthModal(true);
-      return;
-    }
-
+    // No login required - direct add to cart
     setCart(prev => ({
       ...prev,
       [product.id]: (prev[product.id] || 0) + 1
@@ -73,14 +66,7 @@ export default function HomePage() {
   };
 
   const proceedToCheckout = () => {
-    // Check if user is logged in
-    if (!session) {
-      alert('Please login to checkout!');
-      setAuthView('signin');
-      setShowAuthModal(true);
-      return;
-    }
-
+    // No login required - direct checkout as guest
     const cartItems = Object.entries(cart).map(([productId, quantity]) => {
       const product = products.find(p => p.id === parseInt(productId));
       return { product, quantity };
@@ -91,7 +77,7 @@ export default function HomePage() {
       return;
     }
 
-    const customerName = session.user?.name || session.user?.email || 'Guest';
+    const customerName = session?.user?.name || session?.user?.email || 'Guest';
 
     // Place orders for each item in cart
     cartItems.forEach(async ({ product, quantity }) => {
