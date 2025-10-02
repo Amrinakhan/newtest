@@ -144,10 +144,27 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         return;
       }
 
-      // Account created successfully - show success message and switch to signin
-      alert('✅ Account created successfully! Please sign in with your credentials.');
-      setView('signin');
-      setError('');
+      // Account created - now auto-login
+      // Wait a bit for database
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        // Wait for session
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        onClose();
+        window.location.href = '/';
+      } else {
+        // If auto-login fails, show signin view
+        alert('✅ Account created! Please sign in.');
+        setView('signin');
+        setError('');
+      }
 
       /* COMMENTED OUT - Auto-login after registration (for future use)
       // Auto login after registration
