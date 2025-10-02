@@ -311,7 +311,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
               </div>
             )}
 
-            <button
+            {/* Social login buttons - disabled until OAuth is configured */}
+            {/* <button
               onClick={() => handleSocialSignIn('facebook')}
               disabled={loading}
               className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400"
@@ -342,7 +343,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white text-gray-500">OR</span>
               </div>
-            </div>
+            </div> */}
 
             <input
               type="email"
