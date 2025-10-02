@@ -34,71 +34,84 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password required');
-        }
-
-        const client = await pool.connect();
         try {
-          const result = await client.query(
-            'SELECT * FROM users WHERE email = $1 AND provider = $2',
-            [credentials.email, 'email']
-          );
-
-          console.log('Auth check for:', credentials.email, 'Found:', result.rows.length);
-
-          if (result.rows.length === 0) {
-            throw new Error('No user found');
+          if (!credentials?.email || !credentials?.password) {
+            console.error('Missing credentials');
+            return null;
           }
 
-          const user = result.rows[0];
+          console.log('Attempting authorization for:', credentials.email);
 
-          if (!user.password) {
-            throw new Error('Invalid login method');
-          }
+          const client = await pool.connect();
+          try {
+            const result = await client.query(
+              'SELECT * FROM users WHERE email = $1 AND provider = $2',
+              [credentials.email, 'email']
+            );
 
-          // Check if it's an auto-generated password (passwordless login)
-          const isAutoPassword = credentials.password.startsWith('auto-generated-');
+            console.log('Auth check for:', credentials.email, 'Found:', result.rows.length);
 
-          if (isAutoPassword) {
-            // For passwordless login, just verify it's the correct auto-password format
-            const expectedAutoPassword = 'auto-generated-' + credentials.email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
+            if (result.rows.length === 0) {
+              console.log('No user found for email:', credentials.email);
+              return null;
+            }
 
-            if (credentials.password === expectedAutoPassword) {
-              // Valid passwordless login - allow access
-              console.log('Passwordless login successful for:', credentials.email);
+            const user = result.rows[0];
 
-              return {
-                id: user.id.toString(),
-                email: user.email,
-                name: user.name,
-                image: user.image,
-              };
+            if (!user.password) {
+              console.error('User has no password');
+              return null;
+            }
+
+            // Check if it's an auto-generated password (passwordless login)
+            const isAutoPassword = credentials.password.startsWith('auto-generated-');
+
+            if (isAutoPassword) {
+              // For passwordless login, just verify it's the correct auto-password format
+              const expectedAutoPassword = 'auto-generated-' + credentials.email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
+
+              if (credentials.password === expectedAutoPassword) {
+                // Valid passwordless login - allow access
+                console.log('Passwordless login successful for:', credentials.email);
+
+                return {
+                  id: user.id.toString(),
+                  email: user.email,
+                  name: user.name,
+                  image: user.image,
+                };
+              } else {
+                console.error('Invalid passwordless token');
+                return null;
+              }
             } else {
-              throw new Error('Invalid passwordless token');
-            }
-          } else {
-            // Regular password check
-            const isValid = await bcrypt.compare(credentials.password, user.password);
+              // Regular password check
+              const isValid = await bcrypt.compare(credentials.password, user.password);
 
-            console.log('Password valid:', isValid);
+              console.log('Password valid:', isValid);
 
-            if (!isValid) {
-              throw new Error('Invalid password');
+              if (!isValid) {
+                console.error('Invalid password for user:', credentials.email);
+                return null;
+              }
             }
+
+            console.log('Authorization successful for:', credentials.email);
+            return {
+              id: user.id.toString(),
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          } catch (queryError) {
+            console.error('Database query error:', queryError);
+            return null;
+          } finally {
+            client.release();
           }
-
-          return {
-            id: user.id.toString(),
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          };
         } catch (error) {
           console.error('Authorization error:', error);
-          throw error;
-        } finally {
-          client.release();
+          return null;
         }
       },
     }),
