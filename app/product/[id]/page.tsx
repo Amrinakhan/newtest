@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import CustomerNameModal from '@/components/EmailCollectionModal';
 
 interface Product {
   id: number;
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [showNameModal, setShowNameModal] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -42,17 +44,14 @@ export default function ProductDetailPage() {
     }
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!product) return;
+    // Show name modal to get customer name
+    setShowNameModal(true);
+  };
 
-    // Check if user is logged in
-    if (!session) {
-      alert('Please login to purchase products!');
-      router.push('/');
-      return;
-    }
-
-    const customerName = session.user?.name || session.user?.email || 'Guest';
+  const handleNameSubmit = async (name: string) => {
+    if (!product) return;
 
     try {
       for (let i = 0; i < quantity; i++) {
@@ -64,7 +63,7 @@ export default function ProductDetailPage() {
           body: JSON.stringify({
             product_name: product.name,
             price: product.price,
-            customer_name: customerName,
+            customer_name: name,
           }),
         });
       }
@@ -96,6 +95,14 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      <CustomerNameModal
+        isOpen={showNameModal}
+        onClose={() => setShowNameModal(false)}
+        onSubmit={handleNameSubmit}
+        title="Complete Your Purchase"
+        message="Please enter your name to complete the order"
+      />
+
       {/* Back Button */}
       <button
         onClick={() => router.push('/')}
