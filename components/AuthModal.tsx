@@ -56,9 +56,14 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
       if (result?.error) {
         setError(result.error);
-      } else {
+      } else if (result?.ok) {
+        // Wait for session to be properly set
+        await new Promise(resolve => setTimeout(resolve, 1000));
         onClose();
-        window.location.reload();
+        // Use href instead of reload for better session handling
+        window.location.href = '/';
+      } else {
+        setError('Login failed. Please try again.');
       }
 
       /* COMMENTED OUT - Auto-registration logic (for future use)
