@@ -56,7 +56,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
       // If sign in fails, try to create account automatically
       if (result?.error) {
-        console.log('Sign in failed, trying to register...');
+        console.log('Sign in failed, trying to register...', result.error);
 
         try {
           const registerResponse = await fetch('/api/auth/register', {
@@ -65,7 +65,13 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
             body: JSON.stringify({ email, password, name: '' }),
           });
 
+          const registerData = await registerResponse.json();
+          console.log('Register response:', registerData);
+
           if (registerResponse.ok) {
+            // Wait a bit for database to update
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             // Auto login after registration
             const loginResult = await signIn('credentials', {
               email,
@@ -73,16 +79,22 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
               redirect: false,
             });
 
+            console.log('Auto-login result:', loginResult);
+
             if (loginResult?.ok) {
               // Give session time to be set
               await new Promise(resolve => setTimeout(resolve, 500));
               onClose();
               window.location.reload();
+            } else {
+              setError('Account created but login failed. Please try signing in manually.');
             }
             return;
+          } else {
+            console.error('Registration failed:', registerData);
           }
         } catch (regError) {
-          console.error('Auto-registration failed:', regError);
+          console.error('Auto-registration error:', regError);
         }
 
         setError('Login failed. Please check your credentials.');
