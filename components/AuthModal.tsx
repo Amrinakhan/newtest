@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
+import { sendSignInLinkToEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 type ModalView = 'main' | 'signin' | 'join' | 'register';
 
@@ -109,103 +111,26 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
     setError('');
 
     try {
-      // Check if user exists
-      const checkResponse = await fetch('/api/auth/check-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      // Use Firebase to send magic link to email
+      const actionCodeSettings = {
+        url: process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/finishSignIn`
+          : 'http://localhost:3000/finishSignIn',
+        handleCodeInApp: true,
+      };
 
-      const userData = await checkResponse.json();
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
 
-      if (userData.exists) {
-        // User already exists - auto login without password
-        const autoPassword = 'auto-generated-' + email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
+      // Save email to localStorage so we can retrieve it after user clicks the link
+      window.localStorage.setItem('emailForSignIn', email);
 
-        const result = await signIn('credentials', {
-          email,
-          password: autoPassword,
-          redirect: false,
-        });
-
-        if (result?.ok) {
-          onClose();
-          window.location.reload();
-        } else {
-          // If auto-password doesn't work, redirect to manual login
-          setError('Please use Sign In button to enter your password.');
-          setView('signin');
-        }
-        setLoading(false);
-        return;
-      }
-
-      // User doesn't exist - create new account
-      // Use email-based password (consistent for each email)
-      const autoPassword = 'auto-generated-' + email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password: autoPassword,
-          name: email.split('@')[0]
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Wait a moment for database to sync (especially important on Vercel)
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Auto login with the new account
-        const result = await signIn('credentials', {
-          email,
-          password: autoPassword,
-          redirect: false,
-        });
-
-        if (result?.ok) {
-          onClose();
-          window.location.reload();
-        } else {
-          // Log full error details for debugging
-          console.error('Login failed after registration. Full result:', result);
-          console.error('Error:', result?.error);
-          console.error('Status:', result?.status);
-          console.error('URL:', result?.url);
-
-          // Try multiple times with increasing delays
-          let success = false;
-          for (let i = 0; i < 3; i++) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-            console.log(`Retry attempt ${i + 1}...`);
-
-            const retryResult = await signIn('credentials', {
-              email,
-              password: autoPassword,
-              redirect: false,
-            });
-
-            if (retryResult?.ok) {
-              success = true;
-              onClose();
-              window.location.reload();
-              break;
-            }
-          }
-
-          if (!success) {
-            setError('Account created! Please refresh the page and try logging in again.');
-          }
-        }
-      } else {
-        setError(data.error || 'Failed to create account');
-      }
-    } catch (error) {
-      setError('Something went wrong. Please try again.');
+      // Show success message
+      alert('✅ Login link sent to your email! Check your inbox.');
+      setEmail('');
+      onClose();
+    } catch (error: any) {
+      console.error('Error sending login link:', error);
+      setError('Failed to send login link: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
