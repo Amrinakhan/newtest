@@ -45,6 +45,8 @@ const authOptions: NextAuthOptions = {
             [credentials.email, 'email']
           );
 
+          console.log('Auth check for:', credentials.email, 'Found:', result.rows.length);
+
           if (result.rows.length === 0) {
             throw new Error('No user found');
           }
@@ -57,6 +59,8 @@ const authOptions: NextAuthOptions = {
 
           const isValid = await bcrypt.compare(credentials.password, user.password);
 
+          console.log('Password valid:', isValid);
+
           if (!isValid) {
             throw new Error('Invalid password');
           }
@@ -67,6 +71,9 @@ const authOptions: NextAuthOptions = {
             name: user.name,
             image: user.image,
           };
+        } catch (error) {
+          console.error('Authorization error:', error);
+          throw error;
         } finally {
           client.release();
         }
