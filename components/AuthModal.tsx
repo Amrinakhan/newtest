@@ -119,9 +119,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       const userData = await checkResponse.json();
 
       if (userData.exists) {
-        // User already exists - show message
-        alert('This email is already registered! Please use "Log on" button to sign in with your password.');
-        setView('main');
+        // User already exists - redirect to sign in page
+        setView('signin');
         setLoading(false);
         return;
       }
