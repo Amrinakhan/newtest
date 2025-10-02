@@ -66,16 +66,18 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
           });
 
           if (registerResponse.ok) {
-            // Auto login after registration with redirect
+            // Auto login after registration
             const loginResult = await signIn('credentials', {
               email,
               password,
-              callbackUrl: '/',
               redirect: false,
             });
 
             if (loginResult?.ok) {
-              window.location.href = '/';
+              // Give session time to be set
+              await new Promise(resolve => setTimeout(resolve, 500));
+              onClose();
+              window.location.reload();
             }
             return;
           }
@@ -85,9 +87,10 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
         setError('Login failed. Please check your credentials.');
       } else {
-        // Successful login - close modal and reload page
+        // Successful login - give session time to be set
+        await new Promise(resolve => setTimeout(resolve, 500));
         onClose();
-        window.location.href = '/';
+        window.location.reload();
       }
     } catch (error) {
       setError('Failed to sign in');
@@ -119,13 +122,14 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       const result = await signIn('credentials', {
         email,
         password,
-        callbackUrl: '/',
         redirect: false,
       });
 
       if (result?.ok) {
+        // Give session time to be set
+        await new Promise(resolve => setTimeout(resolve, 500));
         onClose();
-        window.location.href = '/';
+        window.location.reload();
       } else {
         setError('Registration successful but login failed. Please try signing in.');
       }
