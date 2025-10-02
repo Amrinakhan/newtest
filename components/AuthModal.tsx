@@ -119,8 +119,23 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
       const userData = await checkResponse.json();
 
       if (userData.exists) {
-        // User already exists - redirect to sign in page
-        setView('signin');
+        // User already exists - auto login without password
+        const autoPassword = 'auto-generated-' + email.replace(/[^a-zA-Z0-9]/g, '') + '-password';
+
+        const result = await signIn('credentials', {
+          email,
+          password: autoPassword,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          onClose();
+          window.location.reload();
+        } else {
+          // If auto-password doesn't work, redirect to manual login
+          setError('Please use Sign In button to enter your password.');
+          setView('signin');
+        }
         setLoading(false);
         return;
       }
