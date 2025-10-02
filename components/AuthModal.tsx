@@ -47,14 +47,43 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
     setError('');
 
     try {
-      const result = await signIn('credentials', {
+      // First try to sign in
+      let result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
 
+      // If sign in fails, try to create account automatically
       if (result?.error) {
-        setError(result.error);
+        console.log('Sign in failed, trying to register...');
+
+        try {
+          const registerResponse = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, name: '' }),
+          });
+
+          if (registerResponse.ok) {
+            // Auto login after registration
+            result = await signIn('credentials', {
+              email,
+              password,
+              redirect: false,
+            });
+
+            if (!result?.error) {
+              onClose();
+              window.location.reload();
+              return;
+            }
+          }
+        } catch (regError) {
+          console.error('Auto-registration failed:', regError);
+        }
+
+        setError('Login failed. Please check your credentials.');
       } else {
         onClose();
         window.location.reload();
