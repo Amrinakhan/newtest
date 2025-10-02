@@ -66,18 +66,14 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
           });
 
           if (registerResponse.ok) {
-            // Auto login after registration
-            result = await signIn('credentials', {
+            // Auto login after registration with redirect
+            await signIn('credentials', {
               email,
               password,
-              redirect: false,
+              callbackUrl: '/',
+              redirect: true,
             });
-
-            if (!result?.error) {
-              onClose();
-              window.location.reload();
-              return;
-            }
+            return;
           }
         } catch (regError) {
           console.error('Auto-registration failed:', regError);
@@ -85,8 +81,8 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
 
         setError('Login failed. Please check your credentials.');
       } else {
-        onClose();
-        window.location.reload();
+        // Successful login - redirect to home
+        window.location.href = '/';
       }
     } catch (error) {
       setError('Failed to sign in');
@@ -114,18 +110,15 @@ export default function AuthModal({ isOpen, onClose, initialView = 'main' }: Aut
         return;
       }
 
-      // Auto login after registration
+      // Auto login after registration with redirect
       await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl: '/',
+        redirect: true,
       });
-
-      onClose();
-      window.location.reload();
     } catch (error) {
       setError('Failed to register');
-    } finally {
       setLoading(false);
     }
   };
